@@ -1,8 +1,7 @@
 package com.vaadin.chat.vaadinchat;
 
 import com.github.rjeschke.txtmark.Processor;
-import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
@@ -12,16 +11,19 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 
 @Route("")
 @Push
 public class MainView extends VerticalLayout {
 
     private final Storage storage;
+    private final Grid<Storage.ChatMessage> grid;
+    private Registration registration;
 
     public MainView(Storage storage) {
         this.storage = storage;
-        Grid<Storage.ChatMessage> grid = new Grid<>();
+        this.grid = new Grid<>();
         grid.setItems(storage.getMessages());
         grid.addColumn(new ComponentRenderer<>(message -> new Html(renderRow(message))))
                 .setAutoWidth(true)
@@ -47,7 +49,26 @@ public class MainView extends VerticalLayout {
         );
     }
 
+    public void onMessage(Storage.ChatEvent event) {
+        if (getUI().isPresent()) {
+            UI ui = getUI().get();
+            ui.getSession().lock();
+            ui.access(() -> grid.getDataProvider().refreshAll());
+            ui.getSession().unlock();
+        }
+    }
+
     private String renderRow(Storage.ChatMessage message) {
         return Processor.process(String.format("**%s**: %s", message.getUsrName(), message.getMessage()));
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        registration = storage.attachListener(this::onMessage);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        registration.remove();
     }
 }

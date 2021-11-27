@@ -2,7 +2,9 @@ package com.vaadin.chat.vaadinchat;
 
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventBus;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.shared.Registration;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,11 @@ public class Storage {
 
     public void addRecord(String userName, String message) {
         messages.add(new ChatMessage(userName, message));
+        eventBus.fireEvent(new ChatEvent());
+    }
+
+    public Registration attachListener(ComponentEventListener<ChatEvent> messageListener) {
+        return eventBus.addListener(ChatEvent.class, messageListener);
     }
 
     public static class ChatEvent extends ComponentEvent<Div> {
