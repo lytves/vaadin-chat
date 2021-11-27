@@ -18,28 +18,60 @@ import com.vaadin.flow.shared.Registration;
 public class MainView extends VerticalLayout {
 
     private final Storage storage;
-    private final Grid<Storage.ChatMessage> grid;
+    private Grid<Storage.ChatMessage> grid;
     private Registration registration;
+    private VerticalLayout chat;
+    private VerticalLayout login;
+    private String userName = "";
 
     public MainView(Storage storage) {
         this.storage = storage;
-        this.grid = new Grid<>();
+
+        buildLogin();
+        buildChat();
+    }
+
+    private void buildLogin() {
+        login = new VerticalLayout() {{
+            TextField textfield = new TextField("please, introduce yourself");
+            add(
+                    textfield,
+                    new Button("Login") {{
+                        addClickListener(click -> {
+                            login.setVisible(false);
+                            chat.setVisible(true);
+                            userName = textfield.getValue();
+                            storage.addRecordNewUserJoined(userName);
+                        });
+                        addClickShortcut(Key.ENTER);
+                    }}
+            );
+        }};
+        add(login);
+    }
+
+    private void buildChat() {
+        chat = new VerticalLayout();
+        add(chat);
+        chat.setVisible(false);
+
+        grid = new Grid<>();
         grid.setItems(storage.getMessages());
         grid.addColumn(new ComponentRenderer<>(message -> new Html(renderRow(message))))
                 .setAutoWidth(true)
-                .setHeader("Header");
+                .setHeader("Let's go to talk!");
 
         TextField textField = new TextField();
 
-        add(
+        chat.add(
                 new H3("Vaadin chat"),
                 grid,
-                new HorizontalLayout()   {{
+                new HorizontalLayout() {{
                     add(
                             textField,
                             new Button("➜") {{
                                 addClickListener(click -> {
-                                    storage.addRecord("", textField.getValue());
+                                    storage.addRecord(userName, textField.getValue());
                                     textField.clear();
                                 });
                                 addClickShortcut(Key.ENTER);
@@ -53,13 +85,18 @@ public class MainView extends VerticalLayout {
         if (getUI().isPresent()) {
             UI ui = getUI().get();
             ui.getSession().lock();
+            ui.beforeClientResponse(grid, ctx -> grid.scrollToEnd());
             ui.access(() -> grid.getDataProvider().refreshAll());
             ui.getSession().unlock();
         }
     }
 
     private String renderRow(Storage.ChatMessage message) {
-        return Processor.process(String.format("**%s**: %s", message.getUsrName(), message.getMessage()));
+        if (message.getUsrName().isEmpty()) {
+            return Processor.process(String.format("_User **%s** is just joined the chat!_", message.getMessage()));
+        } else {
+            return Processor.process(String.format("**%s**: %s", message.getUsrName(), message.getMessage()));
+        }
     }
 
     @Override

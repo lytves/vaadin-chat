@@ -27,6 +27,11 @@ public class Storage {
         return eventBus.addListener(ChatEvent.class, messageListener);
     }
 
+    public void addRecordNewUserJoined(String userName) {
+        messages.add(new ChatMessage("", userName));
+        eventBus.fireEvent(new ChatEvent());
+    }
+
     public static class ChatEvent extends ComponentEvent<Div> {
         public ChatEvent() {
             super(new Div(), false);
