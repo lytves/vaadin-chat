@@ -1,4 +1,4 @@
-# Vaadin simple user messge chat
+# Vaadin simple user message chat
 
 Project was created according to the crash lesson ["Web чат на чистой Java (Vaadin) - The web chat on pure Java (Vaadin)"](https://www.youtube.com/watch?v=o07DfTMs2N4) by "letsCode" youtube channel.
 
