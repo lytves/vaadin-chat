@@ -5,7 +5,7 @@ Project was created according to the crash lesson ["Web чат на чистой
 ### Dependencies:
 * SpringBoot
 * Lombok
-* Vaadin
+* Vaadin - https://vaadin.com/docs/v14/flow/guide/quick-start
 * Txtmark - Java markdown processor https://github.com/rjeschke/txtmark
 
 ### Screenshots:
